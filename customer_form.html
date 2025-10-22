@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>लोन आवेदन फॉर्म</title>
+<style>
+  body {font-family: Arial,sans-serif; padding: 20px; background: #fff8fb;}
+  h1 {text-align:center; color:#e79ecf;}
+  .section {border:2px solid #f1c4dc; margin-bottom:15px; padding:10px; border-radius:8px; background:#fceaf3;}
+  .folder {margin-bottom:10px;}
+  .folder-title {font-weight:bold; margin-bottom:4px; color:#bb7dbb;}
+  input {width:100%; padding:6px; border-radius:4px; border:1px solid #f1c4dc; box-sizing: border-box;}
+  button {background: #d6336c; color: #fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; margin-top: 15px;}
+  #saveMsg {color: green; margin-top: 10px; font-weight: bold; display: none;}
+</style>
+</head>
+<body>
+
+<h1>लोन आवेदन फॉर्म</h1>
+
+<div id="formContainer"></div>
+
+<button id="saveBtn">जानकारी सहेजें</button>
+<div id="saveMsg">डाटा सुरक्षित कर दिया गया है।</div>
+
+<script>
+const startLoanAmount=10000;
+const increment=5000;
+const interestRate=1.2;
+const formContainer=document.getElementById('formContainer');
+const saveBtn=document.getElementById('saveBtn');
+const saveMsg=document.getElementById('saveMsg');
+const customerData=[];
+
+function createInput(id,placeholder,value=''){
+  const input=document.createElement('input');
+  input.type='text';
+  input.id=id;
+  input.placeholder=placeholder;
+  input.value=value;
+  input.style.marginBottom='8px';
+  return input;
+}
+function createFolder(titleText,inputId,inputPlaceholder,index){
+  const folder=document.createElement('div');
+  folder.className='folder';
+  const title=document.createElement('div');
+  title.className='folder-title';
+  title.textContent=titleText;
+  const input=createInput(inputId,inputPlaceholder);
+  input.addEventListener('input',()=>{
+    if(!customerData[index]) customerData[index]={};
+    let keyMap={
+      'नाम':'name',
+      'जन्म तिथि / परिचय':'dob',
+      'आधार कार्ड नंबर':'aadhaar',
+      'पैन कार्ड नंबर':'pan',
+      'खाता संख्या':'account',
+      'IFSC कोड':'ifsc'
+    };
+    const key=keyMap[titleText];
+    if(key){
+      customerData[index][key]=input.value;
+    }
+  });
+  folder.appendChild(title);
+  folder.appendChild(input);
+  return folder;
+}
+for(let i=0;i<20;i++){
+  const section=document.createElement('div');
+  section.className='section';
+  const sectionTitle=document.createElement('h2');
+  sectionTitle.textContent=`Section ${i+1}`;
+  sectionTitle.style.color='#e79ecf';
+  section.appendChild(sectionTitle);
+
+  const loanFolder=document.createElement('div');
+  loanFolder.className='folder';
+  const loanTitle=document.createElement('div');
+  loanTitle.className='folder-title';
+  loanTitle.textContent='Loan Amount';
+  const loanValue=document.createElement('div');
+  loanValue.textContent=startLoanAmount+(i*increment);
+  loanFolder.appendChild(loanTitle);
+  loanFolder.appendChild(loanValue);
+
+  const interestFolder=document.createElement('div');
+  interestFolder.className='folder';
+  const interestTitle=document.createElement('div');
+  interestTitle.className='folder-title';
+  interestTitle.textContent='Interest';
+  const interestValue=document.createElement('div');
+  interestValue.textContent=interestRate;
+  interestFolder.appendChild(interestTitle);
+  interestFolder.appendChild(interestValue);
+
+  section.appendChild(loanFolder);
+  section.appendChild(interestFolder);
+
+  section.appendChild(createFolder('नाम',`name-${i}`,'अपना नाम दर्ज करें',i));
+  section.appendChild(createFolder('जन्म तिथि / परिचय',`dob-${i}`,'अपनी जन्म तिथि या परिचय दर्ज करें',i));
+  section.appendChild(createFolder('आधार कार्ड नंबर',`aadhaar-${i}`,'अपना आधार नंबर दर्ज करें',i));
+  section.appendChild(createFolder('पैन कार्ड नंबर',`pan-${i}`,'अपना पैन कार्ड नंबर दर्ज करें',i));
+
+  const bankFolder=document.createElement('div');
+  bankFolder.className='folder';
+  const bankTitle=document.createElement('div');
+  bankTitle.className='folder-title';
+  bankTitle.textContent='बैंक विवरण';
+
+  const accountSubfolder=document.createElement('div');
+  accountSubfolder.className='subfolder';
+
+  const accountLabel=document.createElement('label');
+  accountLabel.textContent='खाता संख्या:';
+  const accountInput=createInput(`account-${i}`,'अपना खाता संख्या दर्ज करें');
+  accountInput.addEventListener('input',()=>{
+    if(!customerData[i]) customerData[i]={};
+    customerData[i]['account']=accountInput.value;
+  });
+  accountSubfolder.appendChild(accountLabel);
+  accountSubfolder.appendChild(accountInput);
+
+  const ifscSubfolder=document.createElement('div');
+  ifscSubfolder.className='subfolder';
+
+  const ifscLabel=document.createElement('label');
+  ifscLabel.textContent='IFSC कोड:';
+  const ifscInput=createInput(`ifsc-${i}`,'अपना IFSC कोड दर्ज करें');
+  ifscInput.addEventListener('input',()=>{
+    if(!customerData[i]) customerData[i]={};
+    customerData[i]['ifsc']=ifscInput.value;
+  });
+  ifscSubfolder.appendChild(ifscLabel);
+  ifscSubfolder.appendChild(ifscInput);
+
+  bankFolder.appendChild(bankTitle);
+  bankFolder.appendChild(accountSubfolder);
+  bankFolder.appendChild(ifscSubfolder);
+
+  section.appendChild(bankFolder);
+
+  formContainer.appendChild(section);
+}
+
+saveBtn.addEventListener('click',()=>{
+  localStorage.setItem('loanCustomerData',JSON.stringify(customerData));
+  saveMsg.style.display='block';
+  setTimeout(()=>{saveMsg.style.display='none';},3000);
+});
+</script>
+
+</body>
+</html>
